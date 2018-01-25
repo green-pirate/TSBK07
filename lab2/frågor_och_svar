@@ -1,0 +1,27 @@
+ 1.
+  - För varje vertex tar den den texturekoordinaterna i listan och sätter den
+    färgen vid vertexen. Det är ett slags rutnät som syns.
+  - Ändrar b-komponenten i färgen med sinus av tiden.
+
+2.
+ - Ingen aning
+ - Vet inte
+
+3.
+ - trans = T(0, 0, -10); Så hamnar den längre bort.
+
+4.
+ - Nej, kameran kan vara överallt oavsett vad som är uppåt.
+
+
+5.
+  - Phong shading
+  - gl_Position måste vara vec4 för vi använder homogena koordinater
+
+
+6.
+  - Inte stor, men märkbart sämre med Gouraud. Egentligen händer samma sak
+
+
+7.
+  

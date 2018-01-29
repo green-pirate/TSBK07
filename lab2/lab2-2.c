@@ -89,7 +89,7 @@ void OnTimer(int value)
 
 void init(void)
 {
-	m = LoadModel("cubeplus.obj");
+	m = LoadModel("bunnyplus.obj");
 	LoadTGATextureSimple("rutor.tga", &myTex);
 
 	// vertex buffer object, used for uploading the geometry

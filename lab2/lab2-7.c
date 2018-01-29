@@ -28,36 +28,28 @@
 #define bottom -0.5
 
 GLfloat a = 90.0f;
+GLfloat b = 90.0f;
 GLfloat projectionMatrix[] = {
 	    2.0f*near/(right-left), 0.0f, (right+left)/(right-left), 0.0f,
       0.0f, 2.0f*near/(top-bottom), (top+bottom)/(top-bottom), 0.0f,
       0.0f, 0.0f, -(far + near)/(far - near), -2*far*near/(far - near),
 			0.0f, 0.0f, -1.0f, 0.0f };
 
-GLfloat myMatrix[] = {1.0f, 0.0f, 0.0f, 0.0f,
-	  									0.0f, 1.0f, 0.0f, 0.0f,
-  										0.0f, 0.0f, 1.0f, 0.0f,
-  										0.0f, 0.0f, 0.0f, 1.0f };
-
 GLuint program;
 
-Model *m;
+Model *bunnyModel;
+Model *carModel;
 GLfloat t = 0.0f;
-mat4 rot, trans, total;
+mat4 rotBunny, transBunny, totalBunny;
+mat4 rotCar, transCar, totalCar;
 GLuint myTex;
+GLuint anotherTex;
 
-vec3 camPos = {0.0f, 0.0f, 10.0f};
+vec3 camPos = {5.0f, 5.0f, 5.0f};
 vec3 camLookAt = {0.0f, 0.0f, 0.0f};
 vec3 camUp = {0.0f, 1.0f, 0.0f};
 mat4 worldToView;
 
-// vertex array object
-unsigned int vertexArrayObjID;
-unsigned int bunnyTexCoordBufferObjID;
-unsigned int bunnyVertexArrayObjID;
-unsigned int bunnyVertexBufferObjID;
-unsigned int bunnyIndexBufferObjID;
-unsigned int bunnyNormalBufferObjID;
 
 void OnTimer(int value)
 {
@@ -67,13 +59,10 @@ void OnTimer(int value)
 
 void init(void)
 {
-	m = LoadModel("models/various/venus.obj");
+	bunnyModel = LoadModelPlus("bunnyplus.obj");
+	carModel = LoadModelPlus("bilskiss.obj");
 	LoadTGATextureSimple("rutor.tga", &myTex);
-
-	trans = T(0, 0, 0);
-	rot = Mult(Rx(a),Ry(a));
-	//rot = Rx(0);
-	total = Mult(trans,rot);
+	LoadTGATextureSimple("maskros512.tga", &anotherTex);
 
 	worldToView = lookAtv(camPos, camLookAt, camUp);
 
@@ -92,55 +81,13 @@ void init(void)
 	program = loadShaders("lab2-7.vert", "lab2-7.frag");
 	printError("init shader");
 
-	// Upload geometry to the GPU:
-
-	// Allocate and activate Vertex Array Object
-	glGenVertexArrays(1, &bunnyVertexArrayObjID);
-	glGenBuffers(1, &bunnyTexCoordBufferObjID);
-  glGenBuffers(1, &bunnyVertexBufferObjID);
-  glGenBuffers(1, &bunnyIndexBufferObjID);
-  glGenBuffers(1, &bunnyNormalBufferObjID);
-
-  glBindVertexArray(bunnyVertexArrayObjID);
-
-	printError("Start");
-
-	// VBO for vertex data
-  glBindBuffer(GL_ARRAY_BUFFER, bunnyVertexBufferObjID);
-  glBufferData(GL_ARRAY_BUFFER, m->numVertices*3*sizeof(GLfloat), m->vertexArray, GL_STATIC_DRAW);
-  glVertexAttribPointer(glGetAttribLocation(program, "in_Position"), 3, GL_FLOAT, GL_FALSE, 0, 0);
-  glEnableVertexAttribArray(glGetAttribLocation(program, "in_Position"));
-	printError("in_Position");
-  // VBO for normal data
-  glBindBuffer(GL_ARRAY_BUFFER, bunnyNormalBufferObjID);
-  glBufferData(GL_ARRAY_BUFFER, m->numVertices*3*sizeof(GLfloat), m->normalArray, GL_STATIC_DRAW);
-  glVertexAttribPointer(glGetAttribLocation(program, "in_Normal"), 3, GL_FLOAT, GL_FALSE, 0, 0);
-  glEnableVertexAttribArray(glGetAttribLocation(program, "in_Normal"));
-	printError("in_Normal");
-  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, bunnyIndexBufferObjID);
-  glBufferData(GL_ELEMENT_ARRAY_BUFFER, m->numIndices*sizeof(GLuint), m->indexArray, GL_STATIC_DRAW);
-printError("skickar_inde");
-	/*if (m->texCoordArray != NULL)
-	{
-	    glBindBuffer(GL_ARRAY_BUFFER, bunnyTexCoordBufferObjID);
-	    glBufferData(GL_ARRAY_BUFFER, m->numVertices*2*sizeof(GLfloat), m->texCoordArray, GL_STATIC_DRAW);
-	    glVertexAttribPointer(glGetAttribLocation(program, "inTexCoord"), 2, GL_FLOAT, GL_FALSE, 0, 0);
-	    glEnableVertexAttribArray(glGetAttribLocation(program, "inTexCoord"));
-	}*/
-printError("inTexCoord");
-	glUniformMatrix4fv(glGetUniformLocation(program, "mdlMatrix"), 1, GL_TRUE, total.m);
-	//glUniformMatrix4fv(glGetUniformLocation(program, "myMatrix"), 1, GL_TRUE, myMatrix);
-printError("myMa");
-	glUniform1f(glGetUniformLocation(program, "elapsedTime"), t);
-	printError("Et");
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, myTex);
+	glActiveTexture(GL_TEXTURE1);
+	glBindTexture(GL_TEXTURE_2D, anotherTex);
 
 	glUniformMatrix4fv(glGetUniformLocation(program, "projectionMatrix"), 1, GL_TRUE, projectionMatrix);
-glUniformMatrix4fv(glGetUniformLocation(program, "worldToViewMatrix"), 1, GL_TRUE, (GLfloat*) &worldToView);
-	// End of upload of geometry
-
-	glBindTexture(GL_TEXTURE_2D, myTex);
-	glUniform1i(glGetUniformLocation(program, "texUnit"), 0); // Texture unit 0
-	glActiveTexture(GL_TEXTURE0);
+	glUniformMatrix4fv(glGetUniformLocation(program, "worldToViewMatrix"), 1, GL_TRUE, (GLfloat*) &worldToView);
 
 	printError("init arrays");
 }
@@ -153,32 +100,41 @@ void display(void)
 	// clear the screen
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	glBindVertexArray(bunnyVertexArrayObjID);    // Select VAO
-  glDrawElements(GL_TRIANGLES, m->numIndices, GL_UNSIGNED_INT, 0L);
-
-	//glBindVertexArray(vertexArrayObjID);	// Select VAO
-	//glDrawArrays(GL_TRIANGLES, 0, 36);	// draw object
-
-	printError("display");
-
-	glutSwapBuffers();
-
-	//a += 0.05f;
-	rot = Mult(Rx(a),Ry(a));
-	//trans = T(0, 0, -10 + 8*sin(0.001*t));
-	rot = Rx(0);
-	total = Mult(trans,rot);
-	glUniformMatrix4fv(glGetUniformLocation(program, "mdlMatrix"), 1, GL_TRUE, total.m);
-
-	t = (GLfloat)glutGet(GLUT_ELAPSED_TIME);
-	glUniform1f(glGetUniformLocation(program, "elapsedTime"), t);
-
+	// World to view
 	vec3 camPosNew = camPos;
 	camPosNew.x = sqrt(camPos.x*camPos.x + camPos.y*camPos.y + camPos.z*camPos.z)* cos(a);
 	camPosNew.z = sqrt(camPos.x*camPos.x + camPos.y*camPos.y + camPos.z*camPos.z)* sin(a);
 	worldToView = lookAtv(camPosNew, camLookAt, camUp);
-	//glUniformMatrix4fv(glGetUniformLocation(program, "worldToViewMatrix"), 1, GL_TRUE, (GLfloat*) &worldToView);
+	glUniformMatrix4fv(glGetUniformLocation(program, "worldToViewMatrix"), 1, GL_TRUE, (GLfloat*) &worldToView);
+	// Time
+	t = (GLfloat)glutGet(GLUT_ELAPSED_TIME);
+	glUniform1f(glGetUniformLocation(program, "elapsedTime"), t);
 
+	// Bunny
+	a += 0.05f;
+	rotBunny = Mult(Rx(0),Ry(0));
+	transBunny = T(0, 0, 0);
+	//trans = T(0, 0, -10 + 8*sin(0.001*t));
+	//rot = Rx();
+	totalBunny = Mult(transBunny,rotBunny);
+	glUniformMatrix4fv(glGetUniformLocation(program, "mdlMatrix"), 1, GL_TRUE, totalBunny.m);
+	glUniform1i(glGetUniformLocation(program, "texUnit"), 0); // Texture unit 0
+	DrawModel(bunnyModel, program,"in_Position","in_Normal","inTexCoord");
+
+	// Car
+	b += 0.05f;
+	rotCar = Ry(0);
+	transCar = T(0, 0, -4);
+	//transCar = T(0, 0, -10 + 8*sin(0.001*t));
+	//rot = Rx();
+	totalCar = Mult(transCar,rotCar);
+	glUniformMatrix4fv(glGetUniformLocation(program, "mdlMatrix"), 1, GL_TRUE, totalCar.m);
+	glUniform1i(glGetUniformLocation(program, "texUnit"), 1); // Texture unit 1
+	DrawModel(carModel, program,"in_Position","in_Normal","inTexCoord");
+
+	printError("display");
+
+	glutSwapBuffers();
 }
 
 int main(int argc, char *argv[])
@@ -187,7 +143,7 @@ int main(int argc, char *argv[])
 	glutInitContextVersion(3, 2);
 	glutCreateWindow ("GL3 white triangle example");
 	glutDisplayFunc(display);
-	init ();
+	init();
 	glutTimerFunc(20, &OnTimer, 0);
 	glutMainLoop();
 	return 0;

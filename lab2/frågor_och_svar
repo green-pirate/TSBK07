@@ -4,8 +4,8 @@
   - Ändrar b-komponenten i färgen med sinus av tiden.
 
 2.
- - Ingen aning
  - Vet inte
+ - Snabb minnesaccess som det fanns begränsade enheter för
 
 3.
  - trans = T(0, 0, -10); Så hamnar den längre bort.
@@ -15,13 +15,16 @@
 
 
 5.
-  - Phong shading
+  - I fragment shadern; Phong shading
   - gl_Position måste vara vec4 för vi använder homogena koordinater
 
 
 6.
-  - Inte stor, men märkbart sämre med Gouraud. Egentligen händer samma sak
+  - Inte stor, men märkbart sämre med Gouraud. Phong använder interpolerade normaler
+    istället för bara normalerna i vertexerna.
 
 
 7.
-  
+  - Roterar objekten genom att ändra mdlMatrix
+    Roterar/flyttar kameran genom att ändra worldToViewMatrix. Det gör att båda
+    modellerna "flyttas"

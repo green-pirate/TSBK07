@@ -2,11 +2,13 @@
  - I mitten av fönstret
  - X- höger, Y - uppåt
  - ja, det går man kan skapa en till VBO med färg som man skickar via vert till
-    frag.
+    frag. Alternativt använder en uniform som appliceras på varje vertex
 
  2
- - In: inargument, Out: utargument, Uniform: konstant under en skärmbild, finns ibåde frag och vert
- - En färg som används av frag och positioner av vertices
+ - In: inargument, varierar för varje vertex/pixel
+   Out: utargument, för en vertex/pixel
+   Uniform: Finns direkt i både frag och vert, samma för varje pixel/vertex
+ - En färg som interpoleras i frag och position av vertex
  - Den transponerar myMatrix och skickar den till GPUn
 
  3
@@ -14,16 +16,17 @@
 
  4
  - Nej
- -
+ - in och out som tidigare anser vi
+ - flat shading
 
  5
- - Storlekar på buffertar, placering av punkter
+ - Storlekar på buffertar, placering av punkter, tänkte fel kring antal punkter
  - Rotation med matrismultiplikation
 
  6
  - För att skilja på "insida" och "utsida"
  - Satte färgen till normalen
- - Ja, men någon annan möjlighet nämndes på föreläsningen
+ - Ja anser vi, men någon annan möjlighet nämndes på föreläsningen
  - glBindBuffer: Den kopplar bufferten till arrayen så att den blir
                  en del av arrayen.
    glBufferData: Sätter datan i bufferten.

@@ -7,6 +7,7 @@ in vec2 TexCoord_to_frag;
 
 uniform float elapsedTime;
 uniform sampler2D texUnit;
+uniform int use_tex;
 uniform vec3 color;
 
 void main(void)
@@ -16,7 +17,12 @@ void main(void)
 	float shade = dot(normalize(light), normalize(normal_to_frag));
 	shade = clamp(shade, 0, 1);
 
-	out_Color = vec4(color.x*shade, color.y*shade, color.z*shade, 1.0f);
-
-	//out_Color = texture(texUnit, TexCoord_to_frag);
+	if(use_tex == 1)
+	{
+		out_Color = texture(texUnit, TexCoord_to_frag);
+	}
+	else
+	{
+		out_Color = vec4(color.x*shade, color.y*shade, color.z*shade, 1.0f);
+	}
 }

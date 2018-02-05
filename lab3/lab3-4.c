@@ -49,10 +49,21 @@ GLfloat t = 0.0f;
 GLuint groundTex;
 GLuint skyTex;
 
-vec3 camPos = {30.0f, 5.0f, 0.0f};
+vec3 camPos = {10.0f, 10.0f, 10.0f};
 vec3 camLookAt = {0.0f, 5.0f, 0.0f};
 vec3 camUp = {0.0f, 1.0f, 0.0f};
 mat4 worldToView;
+
+Point3D lightSourcesColorsArr[] = { {1.0f, 0.0f, 0.0f}, // Red light
+                                 {0.0f, 1.0f, 0.0f}, // Green light
+                                 {0.0f, 0.0f, 1.0f}, // Blue light
+                                 {1.0f, 1.0f, 1.0f} }; // White light
+GLfloat specularExponent[] = {10.0, 20.0, 60.0, 5.0};
+GLint isDirectional[] = {0,0,1,1};
+Point3D lightSourcesDirectionsPositions[] = { {10.0f, 5.0f, 0.0f}, // Red light, positional
+                                       {0.0f, 5.0f, 10.0f}, // Green light, positional
+                                       {-1.0f, 0.0f, 0.0f}, // Blue light along X
+                                       {0.0f, 0.0f, -1.0f} }; // White light along Z
 
 void handleKeyboardEvent();
 void drawSkybox();
@@ -100,7 +111,7 @@ void init(void)
 	printError("GL inits");
 
 	// Load and compile shader
-	program = loadShaders("lab3-3.vert", "lab3-3.frag");
+	program = loadShaders("lab3-4.vert", "lab3-4.frag");
 	printError("init shader");
 
 	glActiveTexture(GL_TEXTURE0);
@@ -110,6 +121,13 @@ void init(void)
 
 	glUniformMatrix4fv(glGetUniformLocation(program, "projectionMatrix"), 1, GL_TRUE, projectionMatrix);
 	glUniformMatrix4fv(glGetUniformLocation(program, "worldToViewMatrix"), 1, GL_TRUE, (GLfloat*) &worldToView);
+
+	glUniform3fv(glGetUniformLocation(program, "lightSourcesDirPosArr"), 4, &lightSourcesDirectionsPositions[0].x);
+	glUniform3fv(glGetUniformLocation(program, "lightSourcesColorArr"), 4, &lightSourcesColorsArr[0].x);
+	glUniform1fv(glGetUniformLocation(program, "specularExponent"), 4, specularExponent);
+	glUniform1iv(glGetUniformLocation(program, "isDirectional"), 4, isDirectional);
+
+
 
 	printError("init arrays");
 }
@@ -128,6 +146,9 @@ void display(void)
 	worldToView = lookAtv(camPos, camLookAt, camUp);
 	glUniformMatrix4fv(glGetUniformLocation(program, "worldToViewMatrix"), 1, GL_TRUE, (GLfloat*) &worldToView);
 
+	glUniform3fv(glGetUniformLocation(program, "cameraPos"), 1, camPos.x);
+
+
 	// Time
 	t = (GLfloat)glutGet(GLUT_ELAPSED_TIME);
 	glUniform1f(glGetUniformLocation(program, "elapsedTime"), t);
@@ -139,10 +160,10 @@ void display(void)
 
 
 	glUniform1i(glGetUniformLocation(program, "use_tex"), 0);
-	draw(bunnyModel, Mult(T(55,0,14), S(10,10,10)));
+	draw(bunnyModel, Mult(Mult(T(55,0,14), S(10,10,10)),Ry(a)));
 	draw(cowModel, Mult(T(25,2,-30),S(3,3,3)));
 	draw(cowModel, Mult(T(15,2,50),S(3,3,3)));
-	draw(cowModel, Mult(T(20,2,3+5*sin(a)),S(3,3,3)));
+	draw(cowModel, Mult(T(20,2,5*sin(a)),S(3,3,3)));
 
 	printError("display");
 

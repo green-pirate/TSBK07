@@ -49,8 +49,8 @@ GLfloat t = 0.0f;
 GLuint groundTex;
 GLuint skyTex;
 
-vec3 camPos = {10.0f, 10.0f, 10.0f};
-vec3 camLookAt = {0.0f, 5.0f, 0.0f};
+vec3 camPos = {10.0f, 0.0f, 0.0f};
+vec3 camLookAt = {0.0f, 0.0f, 0.0f};
 vec3 camUp = {0.0f, 1.0f, 0.0f};
 mat4 worldToView;
 

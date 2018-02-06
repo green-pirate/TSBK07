@@ -19,32 +19,50 @@ uniform vec3 lightSourcesColorArr[4];
 uniform float specularExponent[4];
 uniform bool isDirectional[4];
 
-float positionalLight(vec3 lightPos);
-float directionalLight(vec3 lightDirection);
+float positionalLight(vec3 lightPos, float specularExponent);
+float directionalLight(vec3 lightDirection, float specularExponent);
 
 
 void main(void)
 {
+    int i;
+    float shade[4];
+    vec4 shaded_color[4];
+    for(i = 0; i < 4; i++)
+    {
+        if(isDirectional[i])
+        {
+            shade[i] = directionalLight(lightSourcesDirPosArr[i], specularExponent[i]);
+        }
+        else
+        {
+            shade[i] = positionalLight(lightSourcesDirPosArr[i], specularExponent[i]);
+        }
+
+        shaded_color[i] = shade[i] * vec4(lightSourcesColorArr[i], 1.0);
+    }
+
+
+
 	if(use_tex == 1)
 	{
 		out_Color = texture(texUnit, TexCoord_to_frag);
 	}
 	else
 	{
-        float shade = positionalLight(vec3(20,0,0));
-        out_Color = vec4(shade, shade, shade, 1.0);
+        out_Color = shaded_color[0] + shaded_color[1] + shaded_color[2] + shaded_color[3];
 	}
 }
 
-float positionalLight(vec3 lightPos)
+float positionalLight(vec3 lightPos, float specularExponent)
 {
     // lightPos in world coordinates
     vec3 lightDirection = normalize(lightPos - exSurface);
 
-    return directionalLight(lightDirection);
+    return directionalLight(lightDirection, specularExponent);
 }
 
-float directionalLight(vec3 lightDirection)
+float directionalLight(vec3 lightDirection, float specularExponent)
 {
     // vertex shader sends all in world coordinates
     vec3 light = normalize(lightDirection);
@@ -59,7 +77,7 @@ float directionalLight(vec3 lightDirection)
     vec3 v = normalize(cameraPos - exSurface); // View direction
     specular = dot(r, v);
     if (specular > 0.0)
-        specular = 1.0 * pow(specular, 400.0);
+        specular = 1.0 * pow(specular, specularExponent);
     specular = max(specular, 0.0);
     shade = 0.7*diffuse + 1.0*specular;
 

@@ -19,92 +19,49 @@ uniform vec3 lightSourcesColorArr[4];
 uniform float specularExponent[4];
 uniform bool isDirectional[4];
 
+float positionalLight(vec3 lightPos);
+float directionalLight(vec3 lightDirection);
+
+
 void main(void)
 {
-	vec3 lightPos = vec3(20, 0, 0);
-
-	vec3 light = normalize(lightPos - exSurface);
-
-	ÄNDRA SÅ ATT LJUSFLÄCKARNA FLYTTAR SIG MED RIKTNINGEN PÅ BETRAKTNINGSVEKTORN 
-
-	float shade = dot(normalize(light), normalize(normal_to_frag));
-	shade = clamp(shade, 0, 1);
-
 	if(use_tex == 1)
 	{
 		out_Color = texture(texUnit, TexCoord_to_frag);
 	}
 	else
 	{
-		float diffuse;
-		float specular = 0;
-		float shade;
-
-		// Diffuse
-		diffuse = dot(normalize(normal_to_frag), light);
-		diffuse = max(0.0, diffuse); // No negative light
-
-		// Specular
-		vec3 reflectedLightDirection = reflect(-light, normalize(normal_to_frag));
-		vec3 eyeDirection = normalize(cameraPos - exSurface); // View direction
-		if(dot(light, normal_to_frag) > 0.0)
-		{
-			specular = dot(reflectedLightDirection, eyeDirection);
-			specular = max(specular, 0.01);
-			specular = 1.0 * pow(specular, 10.0);
-		}
-		specular = max(specular, 0.01);
-		shade = 0.5*diffuse + 0.5*specular;
-		out_Color = vec4(shade, shade, shade, 1.0);
+        float shade = positionalLight(vec3(20,0,0));
+        out_Color = vec4(shade, shade, shade, 1.0);
 	}
 }
 
 float positionalLight(vec3 lightPos)
 {
-	vec3 light = normalize(lightPos - exSurface);
+    // lightPos in world coordinates
+    vec3 lightDirection = normalize(lightPos - exSurface);
 
-	float diffuse;
-	float specular = 0;
-	float shade;
-
-	// Diffuse
-	diffuse = dot(normalize(normal_to_frag), light);
-	diffuse = max(0.0, diffuse); // No negative light
-
-	// Specular
-	if(dot(light, normal_to_frag) > 0.0)
-	{
-		specular = 1.0 * pow(diffuse, 300.0);
-	}
-	specular = max(specular, 0.01);
-	shade = 0.5*diffuse + 0.5*specular;
-
-	return shade;
+    return directionalLight(lightDirection);
 }
 
 float directionalLight(vec3 lightDirection)
 {
-	vec3 light = normalize(lightDirection);
+    // vertex shader sends all in world coordinates
+    vec3 light = normalize(lightDirection);
+    float diffuse, specular, shade;
 
-	float diffuse;
-	float specular = 0;
-	float shade;
+    // Diffuse
+    diffuse = dot(normalize(normal_to_frag), light);
+    diffuse = max(0.0, diffuse); // No negative light
 
-	// Diffuse
-	diffuse = dot(normalize(normal_to_frag), light);
-	diffuse = max(0.0, diffuse); // No negative light
+    // Specular
+    vec3 r = reflect(-light, normalize(normal_to_frag));
+    vec3 v = normalize(cameraPos - exSurface); // View direction
+    specular = dot(r, v);
+    if (specular > 0.0)
+        specular = 1.0 * pow(specular, 400.0);
+    specular = max(specular, 0.0);
+    shade = 0.7*diffuse + 1.0*specular;
 
-	// Specular
-	vec3 reflectedLightDirection = reflect(-light, normalize(normal_to_frag));
-	vec3 eyeDirection = normalize(-exSurface); // View direction
-	if(dot(light, normal_to_frag) > 0.0)
-	{
-		specular = dot(reflectedLightDirection, eyeDirection);
-		specular = max(specular, 0.01);
-		specular = 1.0 * pow(specular, 10.0);
-	}
-	specular = max(specular, 0.01);
-	shade = 0.5*diffuse + 0.5*specular;
-
-	return shade;
+    return shade;
 }

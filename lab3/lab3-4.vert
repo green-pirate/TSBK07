@@ -15,9 +15,9 @@ out vec3 exSurface; // Phong (specular)
 void main(void)
 {
 	mat3 normalTransform = mat3(mdlMatrix);
-	normal_to_frag = normalTransform * in_Normal;
+	normal_to_frag = normalTransform * in_Normal; // Send in world coordinates
 
-	exSurface = vec3( mdlMatrix * vec4(in_Position, 1.0));
+	exSurface = vec3(mdlMatrix * vec4(in_Position, 1.0)); // Send in world coordinates
 
 	TexCoord_to_frag = inTexCoord;
 

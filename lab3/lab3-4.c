@@ -146,7 +146,7 @@ void display(void)
 	worldToView = lookAtv(camPos, camLookAt, camUp);
 	glUniformMatrix4fv(glGetUniformLocation(program, "worldToViewMatrix"), 1, GL_TRUE, (GLfloat*) &worldToView);
 
-	glUniform3fv(glGetUniformLocation(program, "cameraPos"), 1, camPos.x);
+	glUniform3fv(glGetUniformLocation(program, "cameraPos"), 1, &camPos.x);
 
 
 	// Time

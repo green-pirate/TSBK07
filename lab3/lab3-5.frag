@@ -8,6 +8,7 @@ in vec3 exSurface; // Phong (specular)
 
 uniform float elapsedTime;
 uniform sampler2D texUnit;
+uniform sampler2D secondTexUnit;
 uniform int use_tex;
 uniform vec3 color;
 uniform mat4 worldToViewMatrix;
@@ -40,19 +41,26 @@ void main(void)
             shade[i] = positionalLight(lightSourcesDirPosArr[i], specularExponent[i]);
         }
 
-        shaded_color[i] = shade[i] * vec4(lightSourcesColorArr[i], 1.0);
+        shaded_color[i] = vec4(shade[i] * lightSourcesColorArr[i], 1.0f);
         total_color = total_color + shaded_color[i];
     }
 
 
-
 	if(use_tex == 1)
 	{
-		out_Color = total_color * texture(texUnit, TexCoord_to_frag);
+		out_Color = texture(texUnit, TexCoord_to_frag);
 	}
+    else if(use_tex == 2)
+    {
+        vec4 grass = sin(0.001 * elapsedTime) * texture(texUnit, TexCoord_to_frag);
+        vec4 dirt = - sin(0.001 * elapsedTime) * texture(secondTexUnit, TexCoord_to_frag);
+        grass = max(grass, 0);
+        dirt = max(dirt, 0);
+        out_Color = vec4(vec3(total_color * (grass + dirt)), 0.5);
+    }
 	else
 	{
-        out_Color = total_color; //shaded_color[0] + shaded_color[1] + shaded_color[2] + shaded_color[3];
+        out_Color = total_color;
 	}
 }
 

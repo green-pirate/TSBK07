@@ -7,11 +7,11 @@ out vec2 texCoord;
 
 // NY
 uniform mat4 projMatrix;
-uniform mat4 mdlMatrix;
+uniform mat4 modelToViewMatrix;
 
 void main(void)
 {
-	mat3 normalMatrix1 = mat3(mdlMatrix);
+	mat3 normalMatrix1 = mat3(modelToViewMatrix);
 	texCoord = inTexCoord;
-	gl_Position = projMatrix * mdlMatrix * vec4(inPosition, 1.0);
+	gl_Position = projMatrix * modelToViewMatrix * vec4(inPosition, 1.0);
 }

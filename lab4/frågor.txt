@@ -1,0 +1,13 @@
+1.
+    - Ljusintensitet som översätts till höjd.
+    0-255 (kollar bara röda kanalen, 8 bitar).
+
+    - 18 trianglar
+
+
+2.
+    - Nej.
+
+
+3.
+    -

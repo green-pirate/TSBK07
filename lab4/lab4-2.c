@@ -11,7 +11,12 @@
 #include "loadobj.h"
 #include "LoadTGA.h"
 
+void handleKeyboardEvent();
+
 mat4 projectionMatrix;
+vec3 camPos = {10.0f, 0.0f, 0.0f};
+vec3 camLookAt = {0.0f, 0.0f, 0.0f};
+vec3 camUp = {0.0f, 1.0f, 0.0f};
 
 Model* GenerateTerrain(TextureData *tex)
 {
@@ -30,7 +35,7 @@ Model* GenerateTerrain(TextureData *tex)
 		{
 // Vertex array. You need to scale this properly
 			vertexArray[(x + z * tex->width)*3 + 0] = x / 1.0;
-			vertexArray[(x + z * tex->width)*3 + 1] = tex->imageData[(x + z * tex->width) * (tex->bpp/8)] / 100.0;
+			vertexArray[(x + z * tex->width)*3 + 1] = tex->imageData[(x + z * tex->width) * (tex->bpp/8)] / 20.0;
 			vertexArray[(x + z * tex->width)*3 + 2] = z / 1.0;
 // Normal vectors. You need to calculate these.
 			normalArray[(x + z * tex->width)*3 + 0] = 0.0;
@@ -87,7 +92,7 @@ void init(void)
 	glDisable(GL_CULL_FACE);
 	printError("GL inits");
 
-	projectionMatrix = frustum(-0.1, 0.1, -0.1, 0.1, 0.2, 50.0);
+	projectionMatrix = frustum(-0.1, 0.1, -0.1, 0.1, 0.2, 1000.0);
 
 	// Load and compile shader
 	program = loadShaders("terrain.vert", "terrain.frag");
@@ -100,7 +105,7 @@ void init(void)
 
 // Load terrain data
 
-	LoadTGATextureData("44-terrain.tga", &ttex);
+	LoadTGATextureData("fft-terrain.tga", &ttex);
 	tm = GenerateTerrain(&ttex);
 	printError("init terrain");
 }
@@ -110,22 +115,25 @@ void display(void)
 	// clear the screen
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	mat4 total, modelView, camMatrix;
+	mat4 modelToView, modelToWorld, worldToView;
+
+    handleKeyboardEvent();
 
 	printError("pre display");
 
 	glUseProgram(program);
 
 	// Build matrix
+    worldToView = lookAtv(camPos, camLookAt, camUp);
 
-	vec3 cam = {0, 5, 8};
-	vec3 lookAtPoint = {2, 0, 2};
-	camMatrix = lookAt(cam.x, cam.y, cam.z,
-				lookAtPoint.x, lookAtPoint.y, lookAtPoint.z,
-				0.0, 1.0, 0.0);
-	modelView = IdentityMatrix();
-	total = Mult(camMatrix, modelView);
-	glUniformMatrix4fv(glGetUniformLocation(program, "mdlMatrix"), 1, GL_TRUE, total.m);
+	//vec3 cam = {0, 5, 8};
+	//vec3 lookAtPoint = {2, 0, 2};
+	//camMatrix = lookAt(cam.x, cam.y, cam.z,
+	//			lookAtPoint.x, lookAtPoint.y, lookAtPoint.z,
+	//			0.0, 1.0, 0.0);
+	modelToWorld = IdentityMatrix();
+	modelToView = Mult(worldToView, modelToWorld);
+	glUniformMatrix4fv(glGetUniformLocation(program, "modelToViewMatrix"), 1, GL_TRUE, modelToView.m);
 
 	glBindTexture(GL_TEXTURE_2D, tex1);		// Bind Our Texture tex1
 	DrawModel(tm, program, "inPosition", "inNormal", "inTexCoord");
@@ -161,4 +169,91 @@ int main(int argc, char **argv)
 
 	glutMainLoop();
 	exit(0);
+}
+
+
+
+
+
+void handleKeyboardEvent()
+{
+	if (glutKeyIsDown('w'))
+	{
+		vec3 stepDirection = VectorSub(camLookAt, camPos);
+		stepDirection = Normalize(stepDirection);
+		camLookAt = VectorAdd(camLookAt, stepDirection);
+		camPos = VectorAdd(camPos, stepDirection);
+	}
+
+	if (glutKeyIsDown('s'))
+	{
+		vec3 stepDirection = VectorSub(camLookAt, camPos);
+		stepDirection = Normalize(stepDirection);
+		camLookAt = VectorSub(camLookAt, stepDirection);
+		camPos = VectorSub(camPos, stepDirection);
+	}
+
+	if (glutKeyIsDown('d'))
+	{
+		vec3 stepDirection = CrossProduct(VectorSub(camLookAt, camPos), camUp);
+		stepDirection = Normalize(stepDirection);
+		camLookAt = VectorAdd(camLookAt, stepDirection);
+		camPos = VectorAdd(camPos, stepDirection);
+	}
+
+	if (glutKeyIsDown('a'))
+	{
+		vec3 stepDirection = CrossProduct(VectorSub(camLookAt, camPos), camUp);
+		stepDirection = Normalize(stepDirection);
+		camLookAt = VectorSub(camLookAt, stepDirection);
+		camPos = VectorSub(camPos, stepDirection);
+	}
+
+	if (glutKeyIsDown('q'))
+	{
+		vec3 stepDirection = VectorSub(camLookAt, camPos);
+		camLookAt = MultMat3Vec3(mat4tomat3(ArbRotate(camUp, 0.05)), stepDirection);
+				camLookAt = VectorAdd(camPos, camLookAt);
+	}
+
+	if (glutKeyIsDown('e'))
+	{
+		vec3 stepDirection = VectorSub(camLookAt, camPos);
+		camLookAt = MultMat3Vec3(mat4tomat3(ArbRotate(camUp, -0.05)), stepDirection);
+		camLookAt = VectorAdd(camPos, camLookAt);
+	}
+
+	if (glutKeyIsDown('r'))
+	{
+		camLookAt = VectorAdd(camLookAt, Normalize(camUp));
+		camPos = VectorAdd(camPos, Normalize(camUp));
+	}
+
+	if (glutKeyIsDown('f'))
+	{
+		camLookAt = VectorSub(camLookAt, Normalize(camUp));
+		camPos = VectorSub(camPos, Normalize(camUp));
+	}
+
+	if (glutKeyIsDown('t'))
+	{
+		vec3 stepDirection = VectorSub(camLookAt, camPos);
+		vec3 planarComp = CrossProduct(stepDirection, camUp);
+
+		camLookAt = MultMat3Vec3(mat4tomat3(ArbRotate(planarComp, 0.05)), stepDirection);
+		camLookAt = VectorAdd(camPos, camLookAt);
+
+		camUp = Normalize(CrossProduct(planarComp, VectorSub(camLookAt, camPos)));
+	}
+
+	if (glutKeyIsDown('g'))
+	{
+		vec3 stepDirection = VectorSub(camLookAt, camPos);
+		vec3 planarComp = CrossProduct(stepDirection, camUp);
+
+		camLookAt = MultMat3Vec3(mat4tomat3(ArbRotate(planarComp, -0.05)), stepDirection);
+		camLookAt = VectorAdd(camPos, camLookAt);
+
+		camUp = Normalize(CrossProduct(planarComp, VectorSub(camLookAt, camPos)));
+	}
 }

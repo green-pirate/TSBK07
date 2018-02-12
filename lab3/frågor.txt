@@ -1,0 +1,45 @@
+1.
+    - Har en matris med rotationen över tid som multipliceras
+    med varje blads initiala rotation.
+
+    - Har en matris, transCompleteModel, som alla delar av
+    modellen multipliceras med.
+
+
+2.
+    - WASD för platt rörelse. EQ för rotationrunt up-vector.
+    RF för upp/ned. TG för tilt.
+
+    - Kan rotera/translatera hela världen istället.
+
+
+3.
+    - Vi translaterar skyboxen till kamerans position.
+
+    - Vi har en modell för varje objekt med varsin draw.
+    Blir osmidigt för många objekt, bättre att använda större
+    samlingar av objekt.
+
+    - Z-buffern måste stängas av. Den ska flyttas med kameran.
+    Inte påverkas av ljussättning.
+
+    - Den har för låga kanter, det blir en glipa mellan den och
+    marken.
+
+
+4.
+    - Vi skickar kamerans position till shadern och tar den
+    minus ytans position. (Vi gör allt i världskoordinater)
+
+    - Betraktningsvektorn, ytans normal, ljusriktningen
+
+
+5.
+    - Vi tar textur-färgen gånger skugg-färgen
+
+    - sin över tid, så att de byter med varandra
+
+
+Extra.
+    - Använder culling för att först rita baksidan och
+    sen framsidan.

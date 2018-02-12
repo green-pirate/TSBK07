@@ -191,7 +191,7 @@ int main(int argc, char *argv[])
 {
 	glutInit(&argc, argv);
 	glutInitContextVersion(3, 2);
-	glutCreateWindow ("Lab3-1");
+	glutCreateWindow (argv[0]);
 	glutDisplayFunc(display);
 	init();
 	glutTimerFunc(20, &OnTimer, 0);

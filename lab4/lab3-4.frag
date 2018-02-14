@@ -25,6 +25,7 @@ float directionalLight(vec3 lightDirection, float specularExponent);
 
 void main(void)
 {
+    /*
     int i;
     float shade[4];
     vec4 shaded_color[4];
@@ -43,17 +44,19 @@ void main(void)
         shaded_color[i] = shade[i] * vec4(lightSourcesColorArr[i], 1.0);
         total_color = total_color + shaded_color[i];
     }
+    */
 
 
-
-	if(use_tex == 1)
+	/*if(use_tex == 1)
 	{
 		out_Color = total_color * texture(texUnit, TexCoord_to_frag);
 	}
 	else
 	{
         out_Color = total_color; //shaded_color[0] + shaded_color[1] + shaded_color[2] + shaded_color[3];
-	}
+	}*/
+
+    out_Color = texture(texUnit, TexCoord_to_frag);
 }
 
 float positionalLight(vec3 lightPos, float specularExponent)

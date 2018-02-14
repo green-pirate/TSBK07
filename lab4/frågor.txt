@@ -10,4 +10,4 @@
 
 
 3.
-    -
+    - Tar skillnaden mellan närliggande vertexes.

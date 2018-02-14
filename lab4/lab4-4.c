@@ -19,6 +19,24 @@ vec3 camPos = {10.0f, 0.0f, 0.0f};
 vec3 camLookAt = {0.0f, 0.0f, 0.0f};
 vec3 camUp = {0.0f, 1.0f, 0.0f};
 
+GLfloat scaling_factor = 20.0;
+
+
+float GetHeight(TextureData *tex, float x, float z)
+{
+    int x_int = (int) x;
+    int z_int = (int) z;
+
+    if((x_int >= 0 && x_int < tex->width ) && (z_int >= 0 && z_int < tex->height))
+    {
+        return tex->imageData[(x_int + z_int * tex->width) * (tex->bpp/8)] / scaling_factor;
+    }
+
+    // Lack of error handling...
+    return 0;
+}
+
+
 Model* GenerateTerrain(TextureData *tex)
 {
 	int vertexCount = tex->width * tex->height;
@@ -29,8 +47,6 @@ Model* GenerateTerrain(TextureData *tex)
 	GLfloat *normalArray = malloc(sizeof(GLfloat) * 3 * vertexCount);
 	GLfloat *texCoordArray = malloc(sizeof(GLfloat) * 2 * vertexCount);
 	GLuint *indexArray = malloc(sizeof(GLuint) * triangleCount*3);
-
-    GLfloat scaling_factor = 20.0;
 
 	printf("bpp %d\n", tex->bpp);
 	for (x = 0; x < tex->width; x++)
@@ -153,7 +169,7 @@ void init(void)
 	projectionMatrix = frustum(-0.1, 0.1, -0.1, 0.1, 0.2, 1000.0);
 
 	// Load and compile shader
-	program = loadShaders("lab4-4.vert", "lab4-4.frag");
+	program = loadShaders("terrain2.vert", "terrain2.frag");
 	glUseProgram(program);
 	printError("init shader");
 
@@ -186,6 +202,8 @@ void display(void)
 
 	glUseProgram(program);
 
+    GLfloat t = (GLfloat)glutGet(GLUT_ELAPSED_TIME);
+
 	// Build matrix
     worldToView = lookAtv(camPos, camLookAt, camUp);
     glUniform3fv(glGetUniformLocation(program, "cameraPos"), 1, &camPos.x);
@@ -197,7 +215,11 @@ void display(void)
 
 	glBindTexture(GL_TEXTURE_2D, tex1);		// Bind Our Texture tex1
 	DrawModel(tm, program, "inPosition", "inNormal", "inTexCoord");
-    draw(boll, Mult(T(255,0,255),S(1,1,1)));
+    draw(boll, Mult(T(255,GetHeight(&ttex,255,255),255),S(3,3,3)));
+    draw(boll, Mult(T(127,GetHeight(&ttex,127,235),235),S(3,3,3)));
+    draw(boll, Mult(T(67,GetHeight(&ttex,67,89),89),S(3,3,3)));
+    draw(boll, Mult(T(200,GetHeight(&ttex,200,127),127),S(3,3,3)));
+    draw(boll, Mult(T(55 + 100*sin(0.0001*t),GetHeight(&ttex,55 + 100*sin(0.0001*t),100),100),S(3,3,3)));
 
 	printError("display 2");
 

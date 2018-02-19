@@ -11,3 +11,12 @@
 
 3.
     - Tar skillnaden mellan närliggande vertexes.
+
+
+4.
+    - Vi hittar mellan vilka pixlar i height-mappen vår
+    punkt ligger, kollar sedan vilken triangel den ligger i
+    genom att kolla vilken sida om diagonalen (x < z) den
+    ligger.
+    - Beräknar lutningen för triangeln den ligger i, och sedan
+    tar det gånger positionen i triangeln.

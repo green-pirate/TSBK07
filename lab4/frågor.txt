@@ -20,3 +20,8 @@
     ligger.
     - Beräknar lutningen för triangeln den ligger i, och sedan
     tar det gånger positionen i triangeln.
+
+
+5.
+    - Multitexture: Mer lutning ger mer jord, platt ger mer gräs
+    - Sjö: Höjd == 0 satte vi till sjö

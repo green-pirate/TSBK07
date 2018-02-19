@@ -177,12 +177,13 @@ Model* GenerateTerrain(TextureData *tex)
 
 
 // vertex array object
-Model *m, *m2, *tm, *boll, *lake_model, *skyModel;;
+Model *m, *m2, *tm, *boll, *lake_model, *skyModel, *borg1, *borg2;
 // Reference to shader program
 GLuint program;
 GLuint tex1, tex2;
 TextureData ttex, lake_texture; // terrain
 GLuint skyTex;
+GLuint dirtTex;
 
 Point3D lightSourcesColorsArr[] = { {1.0f, 0.0f, 0.0f}, // Red light
                                  {0.0f, 1.0f, 0.0f}, // Green light
@@ -208,10 +209,13 @@ void init(void)
 	printError("GL inits");
 
     boll = LoadModelPlus("./groundsphere.obj");
+    borg1 = LoadModelPlus("./rooftops.obj");
+    borg2 = LoadModelPlus("./walls.obj");
     skyModel = LoadModelPlus("./skybox.obj");
 
     LoadTGATextureSimple("SkyBox512.tga", &skyTex);
     LoadTGATextureSimple("grassplus.tga", &tex1);
+    LoadTGATextureSimple("dirt.tga", &dirtTex);
 
 	// Load and compile shader
 	program = loadShaders("lab4-5.vert", "lab4-5.frag");
@@ -221,25 +225,26 @@ void init(void)
     projectionMatrix = frustum(-0.1, 0.1, -0.1, 0.1, 0.2, 1000.0);
     glUniformMatrix4fv(glGetUniformLocation(program, "projMatrix"), 1, GL_TRUE, projectionMatrix.m);
 
-// Load terrain data
 
+    // Load terrain data
 	LoadTGATextureData("fft-terrain.tga", &ttex);
 	tm = GenerateTerrain(&ttex);
 	printError("init terrain");
 
+    // Load lake
     LoadTGATextureData("lake_bottom.tga", &lake_texture);
 	lake_model = GenerateTerrain(&lake_texture);
 	printError("init lake");
 
+    camPos.y = GetHeight(&ttex, camPos.x, camPos.z) + 5;
+
+    // Bind textures
     glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, tex1);
 	glActiveTexture(GL_TEXTURE1);
 	glBindTexture(GL_TEXTURE_2D, skyTex);
-
-    glUniform3fv(glGetUniformLocation(program, "lightSourcesDirPosArr"), 4, &lightSourcesDirectionsPositions[0].x);
-	glUniform3fv(glGetUniformLocation(program, "lightSourcesColorArr"), 4, &lightSourcesColorsArr[0].x);
-	glUniform1fv(glGetUniformLocation(program, "specularExponent"), 4, specularExponent);
-	glUniform1iv(glGetUniformLocation(program, "isDirectional"), 4, isDirectional);
+    glActiveTexture(GL_TEXTURE2);
+	glBindTexture(GL_TEXTURE_2D, dirtTex);
 }
 
 void display(void)
@@ -247,40 +252,33 @@ void display(void)
 	// clear the screen
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	mat4 modelToView, modelToWorld, worldToView;
-
     handleKeyboardEvent();
+    GLfloat t = (GLfloat)glutGet(GLUT_ELAPSED_TIME);
 
 	printError("pre display");
 
-	//glUseProgram(program);
-
-    GLfloat t = (GLfloat)glutGet(GLUT_ELAPSED_TIME);
 
 	// Build matrix
-    worldToView = lookAtv(camPos, camLookAt, camUp);
+    mat4 worldToView = lookAtv(camPos, camLookAt, camUp);
     glUniform3fv(glGetUniformLocation(program, "cameraPos"), 1, &camPos.x);
-
-	//modelToWorld = IdentityMatrix();
-	//modelToView = Mult(worldToView, modelToWorld);
-    //glUniformMatrix4fv(glGetUniformLocation(program, "modelToWorldMatrix"), 1, GL_TRUE, modelToWorld.m);
 	glUniformMatrix4fv(glGetUniformLocation(program, "worldToViewMatrix"), 1, GL_TRUE, worldToView.m);
 
+
+    // Draw world
     drawSkybox();
     drawLake(lake_model, T(0,-GetHeight(&lake_texture, 0, 0),0));
     drawTerrain();
 
-    //glUniformMatrix4fv(glGetUniformLocation(program, "modelToWorldMatrix"), 1, GL_TRUE, modelToWorld.m);
-	//glUniformMatrix4fv(glGetUniformLocation(program, "worldToViewMatrix"), 1, GL_TRUE, worldToView.m);
 
-	//glBindTexture(GL_TEXTURE_2D, tex1);		// Bind Our Texture tex1
-
-    glUniform1i(glGetUniformLocation(program, "tex"), 1);
-    draw(boll, Mult(T(255,GetHeight(&ttex,255,255),255),S(3,3,3)));
-    draw(boll, Mult(T(127,GetHeight(&ttex,127,235),235),S(3,3,3)));
+    // Draw spheres
+    glUniform1i(glGetUniformLocation(program, "drawing_objects"), 1);
+    draw(borg1, Mult(T(107,GetHeight(&ttex,107,215),215),S(0.1,0.1,0.1)));
+    draw(borg2, Mult(T(107,GetHeight(&ttex,107,215),215),S(0.1,0.1,0.1)));
+    //draw(boll, Mult(T(127,GetHeight(&ttex,127,235),235),S(3,3,3)));
     draw(boll, Mult(T(67,GetHeight(&ttex,67,89),89),S(3,3,3)));
     draw(boll, Mult(T(200,GetHeight(&ttex,200,127),127),S(3,3,3)));
     draw(boll, Mult(T(100 + 100*sin(0.0001*t),GetHeight(&ttex,100 + 100*sin(0.0001*t),75),75),S(3,3,3)));
+    glUniform1i(glGetUniformLocation(program, "drawing_objects"), 0);
 
 	printError("display 2");
 
@@ -345,6 +343,7 @@ void drawTerrain()
 {
 	glUniformMatrix4fv(glGetUniformLocation(program, "modelToWorldMatrix"), 1, GL_TRUE, IdentityMatrix().m);
     glUniform1i(glGetUniformLocation(program, "tex"), 0);
+    glUniform1i(glGetUniformLocation(program, "dirtTex"), 2);
     DrawModel(tm, program, "inPosition", "inNormal", "inTexCoord"); // Draw terrain
 }
 
@@ -357,6 +356,9 @@ void handleKeyboardEvent()
 		stepDirection = Normalize(stepDirection);
 		camLookAt = VectorAdd(camLookAt, stepDirection);
 		camPos = VectorAdd(camPos, stepDirection);
+        float camPos_y = camPos.y;
+        camPos.y = GetHeight(&ttex, camPos.x, camPos.z) + 5;
+        camLookAt.y = camLookAt.y - (camPos.y - camPos_y);
 	}
 
 	if (glutKeyIsDown('s'))
@@ -365,6 +367,9 @@ void handleKeyboardEvent()
 		stepDirection = Normalize(stepDirection);
 		camLookAt = VectorSub(camLookAt, stepDirection);
 		camPos = VectorSub(camPos, stepDirection);
+        float camPos_y = camPos.y;
+        camPos.y = GetHeight(&ttex, camPos.x, camPos.z) + 5;
+        camLookAt.y = camLookAt.y - (camPos.y - camPos_y);
 	}
 
 	if (glutKeyIsDown('d'))
@@ -373,6 +378,9 @@ void handleKeyboardEvent()
 		stepDirection = Normalize(stepDirection);
 		camLookAt = VectorAdd(camLookAt, stepDirection);
 		camPos = VectorAdd(camPos, stepDirection);
+        float camPos_y = camPos.y;
+        camPos.y = GetHeight(&ttex, camPos.x, camPos.z) + 5;
+        camLookAt.y = camLookAt.y - (camPos.y - camPos_y);
 	}
 
 	if (glutKeyIsDown('a'))
@@ -381,6 +389,9 @@ void handleKeyboardEvent()
 		stepDirection = Normalize(stepDirection);
 		camLookAt = VectorSub(camLookAt, stepDirection);
 		camPos = VectorSub(camPos, stepDirection);
+        float camPos_y = camPos.y;
+        camPos.y = GetHeight(&ttex, camPos.x, camPos.z) + 5;
+        camLookAt.y = camLookAt.y - (camPos.y - camPos_y);
 	}
 
 	if (glutKeyIsDown('q'))
@@ -397,7 +408,7 @@ void handleKeyboardEvent()
 		camLookAt = VectorAdd(camPos, camLookAt);
 	}
 
-	if (glutKeyIsDown('r'))
+	/*if (glutKeyIsDown('r'))
 	{
 		camLookAt = VectorAdd(camLookAt, Normalize(camUp));
 		camPos = VectorAdd(camPos, Normalize(camUp));
@@ -407,7 +418,7 @@ void handleKeyboardEvent()
 	{
 		camLookAt = VectorSub(camLookAt, Normalize(camUp));
 		camPos = VectorSub(camPos, Normalize(camUp));
-	}
+	}*/
 
 	if (glutKeyIsDown('t'))
 	{
